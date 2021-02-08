@@ -1,6 +1,7 @@
 from higgsboom.MarketData.CFuturesMarketDataUtils import *
 import pandas as pd
 import numpy as np
+from higgsboom.MarketData.CSecurityMarketDataUtils import *
 
 fUtils = CFuturesMarketDataUtils('Z:/FuturesData', 'cffex-l2')
 
@@ -28,5 +29,12 @@ class spottrade:
     def get_forth_future_taq(self,date):
         fCurrent = fUtils.FuturesTickDataFrame('IF2006', date)
         return fCurrent
+
+    def get_etf_taq(self,date):
+        fundTAQ = secUtils.FundTAQDataFrame('510050.SH', date)
+        return fundTAQ
+
+
+
 
 
