@@ -157,13 +157,22 @@ class FutureTrade:
         # buy etf sell future
         rtarr[:, 6] = rtarr[:, 1].astype(np.float) - rtarr[:, 4].astype(np.float)
 
-        buyf1= rtarr[rtarr[:, 2].astype(np.float) != 0]
+        buyf1 = rtarr[rtarr[:, 2].astype(np.float) != 0]
+        buyf1 = buyf1[buyf1[:, 5].astype(np.float) != 0]
         buyf1[:, 7] = buyf1[:, 5].astype(np.float)/ buyf1[:, 2].astype(np.float)
-        rtarr[rtarr[:, 2].astype(np.float) != 0] = buyf1
+        rtarr[rtarr[:,5].astype(np.float)*rtarr[:, 2].astype(np.float) != 0] = buyf1
 
         sellf1 = rtarr[rtarr[:, 1].astype(np.float) != 0]
-        sellf1[:, 8] = sellf1[:, 6].astype(np.float)/ sellf1[:,1].astpye(np.float)
-        rtarr[rtarr[:, 1].astype(np.float) != 0] = sellf1
+        sellf1 = sellf1[sellf1[:, 6].astype(np.float) != 0]
+        sellf1[:, 8] = sellf1[:, 6].astype(np.float)/ sellf1[:,1].astype(np.float)
+        rtarr[rtarr[:, 6].astype(np.float)*rtarr[:, 1].astype(np.float) != 0] = sellf1
+
+        rtarr1 = rtarr[rtarr[:, 1].astype(np.float)*rtarr[:, 2].astype(np.float)*rtarr[:, 3].astype(np.float)*rtarr[:, 4].astype(np.float) == 0]
+        rtarr1[:, 7] = 0
+        rtarr1[:, 8] = 0
+        rtarr[rtarr[:, 1].astype(np.float) * rtarr[:, 2].astype(np.float) * rtarr[:, 3].astype(np.float) * rtarr[:,
+                                                                                                           4].astype(
+            np.float) == 0] = rtarr1
 
         return rtarr
 
