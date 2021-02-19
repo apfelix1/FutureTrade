@@ -1,16 +1,15 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+from higgsboom.MarketData.CFuturesMarketDataUtils import *
+import pandas as pd
+import numpy as np
+from higgsboom.MarketData.CSecurityMarketDataUtils import *
+import datetime
+import multiprocessing as mp
+import matplotlib.pyplot as plt
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+secUtils = CSecurityMarketDataUtils('Z:/StockData')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+fUtils = CFuturesMarketDataUtils('Z:/FuturesData', 'cffex-l2')
+print(fUtils.FuturesTickDataFrame('IH2005','20200323'))
+print(secUtils.FundTAQDataFrame('510050.SH', '20200323'))
+

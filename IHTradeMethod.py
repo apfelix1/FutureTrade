@@ -12,14 +12,14 @@ class FutureTrade:
     def __init__(self, date):
         self.date = date
 
-    def get_first_taq(self):
+    def get_first_future_taq(self):
         if float(self.date[6:]) < 15:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + + self.date[2:6], self.date)
+            fCurrent = fUtils.FuturesTickDataFrame('IH' + self.date[2:6], self.date)
             return fCurrent
         if 15 <= float(self.date[6:]) <= 21 and datetime.strptime(self.date, '%Y%m%d') < 5:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + + self.date[2:6], self.date)
+            fCurrent = fUtils.FuturesTickDataFrame('IH'  + self.date[2:6], self.date)
             return fCurrent
-        fCurrent = fUtils.FuturesTickDataFrame('IH' + + self.date[2:4] + str(int(float(self.date[4:6]) + 1)), self.date)
+        fCurrent = fUtils.FuturesTickDataFrame('IH' + self.date[2:4] + str(int(float(self.date[4:6]) + 1)), self.date)
         return fCurrent
 
     def get_sec_future_taq(self):
@@ -65,6 +65,16 @@ class FutureTrade:
                                                    self.date)
             return fCurrent
 
+    def get_trades(self, date):
+        curmonth = self.get_first_future_taq()
+        nextmonth = self.get_sec_future_taq()
+        thirdmonth = self.get_third_future_taq()
+        forthmonth = self.get_forth_future_taq()
+
+
+
+        return
+
     def get_etf_taq(self):
         fundTAQ = secUtils.FundTAQDataFrame('510050.SH', self.date)
         fundTAQ = fundTAQ[fundTAQ['TradingTime'] <= '14:57:00.000']
@@ -74,5 +84,5 @@ class FutureTrade:
 
 
 
-a = FutureTrade('20200102')
+a = FutureTrade('20200121')
 ft = a.get_third_future_taq()
