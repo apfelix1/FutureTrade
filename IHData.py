@@ -255,6 +255,12 @@ if __name__ == '__main__':
     a = FutureTrade(name, etfname)
     pool = mp.Pool(mp.cpu_count())
     rtarr_list = pool.map(a.get_rtarr, [(td) for td in tradelist])
+
+    buymax = []
+    sellmax = []
+    for i in rtarr_list:
+        buymax.append(i[:, 7].astype(np.float).max())
+        sellmax.append(i[:, 8].astype(np.float).max())
 '''
     for i in range(len(rtarr_list)):
         rtarr_list[i] = a.get_return_rate(rtarr_list[i])
