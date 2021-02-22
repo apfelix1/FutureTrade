@@ -4,6 +4,7 @@ import numpy as np
 from higgsboom.MarketData.CSecurityMarketDataUtils import *
 import datetime
 import multiprocessing as mp
+import os
 import matplotlib.pyplot as plt
 
 
@@ -16,7 +17,7 @@ class FutureTrade:
         self.etfNumber = etfname
 
     def get_etf_TAQ_array(self, date):
-        fundTAQ = self.secUtils.FundTAQDataFrame('510050.SH', date)
+        fundTAQ = self.secUtils.FundTAQDataFrame(self.etfNumber, date)
         fundArray = np.array(fundTAQ)
         fundArray = fundArray[fundArray[:, fundTAQ.columns.values.tolist().index('TradingTime')] < '14:57:00.000']
         fundArray = fundArray[fundArray[:, fundTAQ.columns.values.tolist().index('TradingTime')] > '09:30:00.000']
@@ -153,7 +154,7 @@ class FutureTrade:
 
     def get_return_rate(self, rtarr):
         # buy future sell etf
-        rtarr[:, 5] = rtarr[:, 2].astype(np.float) - rtarr[:, 3].astype(np.float)
+        rtarr[:, 5] = rtarr[:, 3].astype(np.float) - rtarr[:, 2].astype(np.float)
         # buy etf sell future
         rtarr[:, 6] = rtarr[:, 1].astype(np.float) - rtarr[:, 4].astype(np.float)
 
@@ -194,8 +195,8 @@ class FutureTrade:
         return rtarr
 
 
-name = 'IH2005'
-etfname = '510050.SH'
+name = 'IC2012'
+etfname = '510300.SH'
 
 
 def get_trade_date(name):
@@ -246,7 +247,7 @@ def get_trade_date(name):
 
 if __name__ == '__main__':
     tradelist = get_trade_date(name)
-    print(tradelist)
+    # print(tradelist)
 
     rtarr_list = []
     for i in range(len(tradelist)):
@@ -258,9 +259,25 @@ if __name__ == '__main__':
 
     buymax = []
     sellmax = []
-    for i in rtarr_list:
-        buymax.append(i[:, 7].astype(np.float).max())
-        sellmax.append(i[:, 8].astype(np.float).max())
+    for i in range(len(rtarr_list)):
+        date = tradelist[i]
+        rtarr = rtarr_list[i]
+        rtarr_df = pd.DataFrame(rtarr)
+        rtarr_df = rtarr_df.rename(
+            columns={0: 'timetick', 1: 'buyETF', 2: 'sellETF', 3: 'buy'+name[0:2], 4: 'sell'+name[0:2], 5: 'buyDiff', 6: 'sellDiff',
+                     7: 'buyRate', 8: 'sellRate'})
+        path = '.\\result\\'+name[0:2]+'\\'+name
+        folder = os.path.exists(path)
+        if not folder:
+            os.makedirs(path)
+        rtarr_df.to_csv(path +'\\' + date + '.csv', index=False)
+        buymax.append(rtarr[:, 7].astype(np.float).max())
+        sellmax.append(rtarr[:, 8].astype(np.float).max())
+
+
+
+
+
 '''
     for i in range(len(rtarr_list)):
         rtarr_list[i] = a.get_return_rate(rtarr_list[i])

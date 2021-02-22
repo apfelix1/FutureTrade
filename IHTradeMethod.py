@@ -7,82 +7,54 @@ from datetime import datetime
 fUtils = CFuturesMarketDataUtils('Z:/FuturesData', 'cffex-l2')
 secUtils = CSecurityMarketDataUtils('Z:/StockData')
 
+def get_df(future, date):
+    rtarr = pd.read_csv('./result/'+future[:,2]+'/'+future+date+'.csv', header=None)
+    return rtarr
 
-class FutureTrade:
-    def __init__(self, date):
-        self.date = date
+def get_trade_log(future, date):
+    return
 
-    def get_first_future_taq(self):
-        if float(self.date[6:]) < 15:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + self.date[2:6], self.date)
-            return fCurrent
-        if 15 <= float(self.date[6:]) <= 21 and datetime.strptime(self.date, '%Y%m%d') < 5:
-            fCurrent = fUtils.FuturesTickDataFrame('IH'  + self.date[2:6], self.date)
-            return fCurrent
-        fCurrent = fUtils.FuturesTickDataFrame('IH' + self.date[2:4] + str(int(float(self.date[4:6]) + 1)), self.date)
-        return fCurrent
+def get_trade_date(name):
+    year = name[2:4]
+    month = name[4:]
 
-    def get_sec_future_taq(self):
-        month = int(float(self.date[4:6]) + 1)
-        if month < 10:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + + self.date[2:4] + '0' + str(month),
-                                                   self.date)
-            return fCurrent
-        elif 10 <= month <= 12:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + + self.date[2:4] + str(int(float(self.date[4:6]) + 1)),
-                                                   self.date)
-            return fCurrent
+    # get the month and year of start date
+    if int(month) == 3 or int(month) == 6 or int(month) == 9 or int(month) == 12:
+        startmonth = int(month) - 7
+        if startmonth > 0:
+            startmonth = str(startmonth)
+            startyear = year
         else:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + + str(int(int(self.date[2:4]) + 1)) + '01',
-                                                   self.date)
-            return fCurrent
+            startmonth = str(12 + startmonth)
+            startyear = str(int(year) - 1)
+    else:
+        startmonth = int(month) - 2
+        if startmonth > 0:
+            startmonth = str(startmonth)
+            startyear = year
+        else:
+            startmonth = str(12 + startmonth)
+            startyear = str(int(year) - 1)
 
-    def get_third_future_taq(self):
-        month = int((((float(self.date[4:6]) + 1) // 3) + 1) * 3)
+    # get the start date
+    for i in range(0, 7):
+        startday = str(15 + i)
+        if datetime.datetime.strptime('20' + startyear + startmonth + startday, '%Y%m%d').weekday() == 4:
+            startday = str(int(startday))
+            startdate = (datetime.datetime.strptime('20' + startyear + startmonth + startday,
+                                                    '%Y%m%d') + datetime.timedelta(days=3)).date()
+            break
 
-        if month <= 9:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + self.date[2:4] + '0' + str(month), self.date)
-            return fCurrent
-        elif month == 12:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + self.date[2:4] + '12', self.date)
-            return fCurrent
-        elif month > 12:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + str(int(int(self.date[2:4]) + 1)) + str(month - 12),
-                                                   self.date)
-            return fCurrent
+    # get the end date
+    for i in range(0, 7):
+        endday = str(15 + i)
+        if datetime.datetime.strptime('20' + year + month + endday, '%Y%m%d').weekday() == 4:
+            enddate = (datetime.datetime.strptime('20' + year + month + endday, '%Y%m%d').date())
+            break
 
-    def get_forth_future_taq(self):
-        month = int((((float(self.date[4:6]) + 1) // 3) + 2) * 3)
+    startdate = str(startdate).replace('-', '')
+    enddate = str(enddate).replace('-', '')
 
-        if month <= 9:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + self.date[2:4] + '0' + str(month), self.date)
-            return fCurrent
-        elif month == 12:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + self.date[2:4] + '12', self.date)
-            return fCurrent
-        elif month > 12:
-            fCurrent = fUtils.FuturesTickDataFrame('IH' + str(int(int(self.date[2:4]) + 1)) + str(month - 12),
-                                                   self.date)
-            return fCurrent
+    tdPeriodList = TradingDays(startdate, enddate)
 
-    def get_trades(self, date):
-        curmonth = self.get_first_future_taq()
-        nextmonth = self.get_sec_future_taq()
-        thirdmonth = self.get_third_future_taq()
-        forthmonth = self.get_forth_future_taq()
-
-
-
-        return
-
-    def get_etf_taq(self):
-        fundTAQ = secUtils.FundTAQDataFrame('510050.SH', self.date)
-        fundTAQ = fundTAQ[fundTAQ['TradingTime'] <= '14:57:00.000']
-        fundTAQ = fundTAQ[fundTAQ['TradingTime'] >= '09:30:00.000']
-        return fundTAQ
-
-
-
-
-a = FutureTrade('20200121')
-ft = a.get_third_future_taq()
+    return tdPeriodList
