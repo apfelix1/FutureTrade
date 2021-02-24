@@ -195,7 +195,7 @@ class FutureTrade:
         return rtarr
 
 
-name = 'IC2012'
+name = 'IC2001'
 etfname = '510300.SH'
 
 
