@@ -26,25 +26,7 @@ def get_trade_log(future, buyspread, sellspread):
         print(date)
         date = date.replace('-', '')
         rtarr = get_df(future, date)
-        if canbuy == True:
-            rtarr['sellRate'] = pd.to_numeric(rtarr['sellRate'])
-            rtarrb = rtarr[rtarr['sellRate'] > buyspread]
-            if date != tradelist[-1]:
-                if len(rtarrb.index) == 0:
-                    print('cant buy, case 0')
-                    continue
-                else:
-                    print('trying to buy, case 1')
-                    canbuy = False
-                    tradelog.loc[len(tradelog.index)] = [date, rtarrb['timetick'].iloc[0], 'TBD', 'TBD',
-                                                         rtarrb['sell'+future[0:2]].iloc[0],
-                                                         rtarrb['buyETF'].iloc[0], 'TBD', 'TBD', 0]
-                    continue
-            # cant buy cuz its last day
-            print('cant buy, case 2')
-            continue
-
-        else:
+        if canbuy == False:
             rtarr['sellRate'] = pd.to_numeric(rtarr['sellRate'])
             rtarrs = rtarr[rtarr['sellRate'] < sellspread]
             rtarrs = rtarrs[rtarrs['sellRate'] != 0]
@@ -59,7 +41,7 @@ def get_trade_log(future, buyspread, sellspread):
                     tradelog.loc[i] = [tradelog['startDate'].iloc[i], tradelog['startTick'].iloc[i], date,
                                        rtarrs['timetick'].iloc[0], tradelog['buyFuture'].iloc[i],
                                        tradelog['buyETF'].iloc[i],
-                                       rtarrs['buy'+future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0]
+                                       rtarrs['buy' + future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0]
                     canbuy = True
                     continue
 
@@ -69,16 +51,37 @@ def get_trade_log(future, buyspread, sellspread):
                 print('trying to sell, case2')
                 i = len(tradelog.index) - 1
                 tradelog.loc[i] = [tradelog['startDate'].iloc[i], tradelog['startTick'].iloc[i], date,
-                                   rtarrs['timetick'].iloc[0], tradelog['buyFuture'].iloc[i], tradelog['buyETF'].iloc[i],
-                                   rtarrs['buy'+future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0]
+                                   rtarrs['timetick'].iloc[0], tradelog['buyFuture'].iloc[i],
+                                   tradelog['buyETF'].iloc[i],
+                                   rtarrs['buy' + future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0]
                 canbuy = True
                 continue
             print('trying to sell, case3')
-            i = len(tradelog.index)-1
+            i = len(tradelog.index) - 1
             tradelog.loc[i] = [tradelog['startDate'].iloc[i], tradelog['startTick'].iloc[i], date,
                                rtarrs['timetick'].iloc[0], tradelog['buyFuture'].iloc[i], tradelog['buyETF'].iloc[i],
-                               rtarrs['buy'+future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0]
+                               rtarrs['buy' + future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0]
             canbuy = True
+
+        else:
+
+            rtarr['sellRate'] = pd.to_numeric(rtarr['sellRate'])
+            rtarrb = rtarr[rtarr['sellRate'] > buyspread]
+            if date != tradelist[-1]:
+                if len(rtarrb.index) == 0:
+                    print('cant buy, case 0')
+                    continue
+                else:
+                    print('trying to buy, case 1')
+                    canbuy = False
+                    tradelog.loc[len(tradelog.index)] = [date, rtarrb['timetick'].iloc[0], 'TBD', 'TBD',
+                                                         rtarrb['sell' + future[0:2]].iloc[0],
+                                                         rtarrb['buyETF'].iloc[0], 'TBD', 'TBD', 0]
+                    continue
+            # cant buy cuz its last day
+            print('cant buy, case 2')
+            continue
+
     print(tradelog)
     list = ['buyFuture', 'buyETF', 'sellFuture', 'sellETF']
     for i in list:
