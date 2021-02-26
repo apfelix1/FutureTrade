@@ -143,7 +143,7 @@ class FutureTrade:
             if len(tickdf.index) == 0:
                 minprice = 0
             else:
-                minprice = tickdf['AskPrice1'].min()
+                minprice = tickdf['BidPrice1'].min()
             mintotalprice = float(minprice) * 300
 
             pricelist.append(mintotalprice)
@@ -178,25 +178,24 @@ class FutureTrade:
         return rtarr
 
     def get_rtarr(self, date):
-        print(date)
+        print('getting rtarr for'+self.name+ 'on' + date)
         rtarr = self.get_etf_TAQ_array(date)
-        print('getting etf array on ' + date)
+        # print('getting etf array on ' + date)
         rtarr = self.get_discount_etf(rtarr)
-        print('getting etf dcetf  ' + date)
+        # print('getting etf dcetf  ' + date)
         rtarr = self.get_premium_etf(rtarr)
-        print('getting etf pretf ' + date)
+        # print('getting etf pretf ' + date)
         rtarr = self.get_buy_future(rtarr, date)
-        print('buy future ' + date)
+        # print('buy future ' + date)
         rtarr = self.get_sell_future(rtarr, date)
-        print('sell future ' + date)
+        # print('sell future ' + date)
         rtarr = self.get_return_rate(rtarr)
-        print('getting return rate' + date)
+        # print('getting return rate' + date)
 
         return rtarr
 
 
-name = 'IC2001'
-etfname = '510300.SH'
+
 
 
 def get_trade_date(name):
@@ -245,34 +244,42 @@ def get_trade_date(name):
     return tdPeriodList
 
 
+
+
 if __name__ == '__main__':
-    tradelist = get_trade_date(name)
-    # print(tradelist)
+    for month in range(2001, 2013):
+        name = 'IH' + str(month)
+        etfname = '510050.SH'
+        tradelist = get_trade_date(name)
+        # print(tradelist)
 
-    rtarr_list = []
-    for i in range(len(tradelist)):
-        tradelist[i] = tradelist[i].replace('-', '')
+        rtarr_list = []
+        for i in range(len(tradelist)):
+            tradelist[i] = tradelist[i].replace('-', '')
 
-    a = FutureTrade(name, etfname)
-    pool = mp.Pool(mp.cpu_count())
-    rtarr_list = pool.map(a.get_rtarr, [(td) for td in tradelist])
+        a = FutureTrade(name, etfname)
+        pool = mp.Pool(mp.cpu_count())
+        rtarr_list = pool.map(a.get_rtarr, [(td) for td in tradelist])
 
-    buymax = []
-    sellmax = []
-    for i in range(len(rtarr_list)):
-        date = tradelist[i]
-        rtarr = rtarr_list[i]
-        rtarr_df = pd.DataFrame(rtarr)
-        rtarr_df = rtarr_df.rename(
-            columns={0: 'timetick', 1: 'buyETF', 2: 'sellETF', 3: 'buy'+name[0:2], 4: 'sell'+name[0:2], 5: 'buyDiff', 6: 'sellDiff',
-                     7: 'buyRate', 8: 'sellRate'})
-        path = '.\\result\\'+name[0:2]+'\\'+name
-        folder = os.path.exists(path)
-        if not folder:
-            os.makedirs(path)
-        rtarr_df.to_csv(path +'\\' + date + '.csv', index=False)
-        buymax.append(rtarr[:, 7].astype(np.float).max())
-        sellmax.append(rtarr[:, 8].astype(np.float).max())
+        buymax = []
+        sellmax = []
+        for i in range(len(rtarr_list)):
+            date = tradelist[i]
+            rtarr = rtarr_list[i]
+            rtarr_df = pd.DataFrame(rtarr)
+            rtarr_df = rtarr_df.rename(
+                columns={0: 'timetick', 1: 'buyETF', 2: 'sellETF', 3: 'buy' + name[0:2], 4: 'sell' + name[0:2],
+                         5: 'buyDiff', 6: 'sellDiff',
+                         7: 'sellRate', 8: 'buyRate'})
+            path = '.\\result\\' + name[0:2] + '\\' + name
+            folder = os.path.exists(path)
+            if not folder:
+                os.makedirs(path)
+            rtarr_df.to_csv(path + '\\' + date + '.csv', index=False)
+            buymax.append(rtarr[:, 7].astype(np.float).max())
+            sellmax.append(rtarr[:, 8].astype(np.float).max())
+
+
 
 
 
