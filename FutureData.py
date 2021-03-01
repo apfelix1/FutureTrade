@@ -247,9 +247,12 @@ def get_trade_date(name):
 
 
 if __name__ == '__main__':
-    for month in range(2001, 2013):
-        name = 'IF' + str(month)
-        etfname = '510300.SH'
+    for month in range(1, 13):
+        if month < 10:
+            name = 'IH19'+'0'+str(month)
+        else:
+            name = 'IH19' + str(month)
+        etfname = '510050.SH'
         tradelist = get_trade_date(name)
         # print(tradelist)
 

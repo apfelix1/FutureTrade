@@ -17,11 +17,11 @@ def get_short_trade_log(future, buyspread, sellspread):
     name = future
     tradelist = get_trade_date(name)
     tradelog = pd.DataFrame(
-        columns=['startDate',  'startTick',  'endDate', 'endTick', 'buyFuture', 'buyETF',
+        columns=['startDate', 'startTick', 'endDate', 'endTick', 'buyFuture', 'buyETF',
                  'sellFuture', 'sellETF', 'returnRate'])
     canbuy = True
     for i in range(len(tradelist)):
-        tradelist[i] = tradelist[i].replace('-','')
+        tradelist[i] = tradelist[i].replace('-', '')
     for date in tradelist:
         print(date)
         date = date.replace('-', '')
@@ -34,21 +34,28 @@ def get_short_trade_log(future, buyspread, sellspread):
             if date != tradelist[-1]:
                 if len(rtarrs.index) == 0:
                     print('cant sell case0')
-                    continue
+
                 else:
                     print('trying to sell, case1')
                     i = len(tradelog.index) - 1
                     tradelog.loc[i] = [tradelog['startDate'].iloc[i], tradelog['startTick'].iloc[i], date,
                                        rtarrs['timetick'].iloc[0], tradelog['buyFuture'].iloc[i],
                                        tradelog['buyETF'].iloc[i],
-                                       rtarrs['buy' + future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0]
+                                       rtarrs['sell' + future[0:2]].iloc[0], rtarrs['buyETF'].iloc[0], 0]
+                    canbuy = True
+            else:
+                if len(rtarrs.index) == 0:
+                    rtarrs = rtarr[rtarr['timetick'] > '14:30:00.000']
+                    rtarrs = rtarrs[rtarrs['sellRate'] != 0]
+                    print('trying to sell, case2')
+                    i = len(tradelog.index) - 1
+                    tradelog.loc[i] = [tradelog['startDate'].iloc[i], tradelog['startTick'].iloc[i], date,
+                                       rtarrs['timetick'].iloc[0], tradelog['buyFuture'].iloc[i],
+                                       tradelog['buyETF'].iloc[i],
+                                       rtarrs['sell' + future[0:2]].iloc[0], rtarrs['buyETF'].iloc[0], 0]
                     canbuy = True
                     continue
-
-            if len(rtarrs.index) == 0:
-                rtarrs = rtarr[rtarr['timetick'] > '14:30:00.000']
-
-                print('trying to sell, case2')
+                print('trying to sell, case3')
                 i = len(tradelog.index) - 1
                 tradelog.loc[i] = [tradelog['startDate'].iloc[i], tradelog['startTick'].iloc[i], date,
                                    rtarrs['timetick'].iloc[0], tradelog['buyFuture'].iloc[i],
@@ -56,14 +63,8 @@ def get_short_trade_log(future, buyspread, sellspread):
                                    rtarrs['buy' + future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0]
                 canbuy = True
                 continue
-            print('trying to sell, case3')
-            i = len(tradelog.index) - 1
-            tradelog.loc[i] = [tradelog['startDate'].iloc[i], tradelog['startTick'].iloc[i], date,
-                               rtarrs['timetick'].iloc[0], tradelog['buyFuture'].iloc[i], tradelog['buyETF'].iloc[i],
-                               rtarrs['buy' + future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0]
-            canbuy = True
 
-        else:
+        if canbuy == True:
 
             rtarr['sellRate'] = pd.to_numeric(rtarr['sellRate'])
             rtarrb = rtarr[rtarr['sellRate'] > buyspread]
@@ -75,8 +76,8 @@ def get_short_trade_log(future, buyspread, sellspread):
                     print('trying to buy, case 1')
                     canbuy = False
                     tradelog.loc[len(tradelog.index)] = [date, rtarrb['timetick'].iloc[0], 'TBD', 'TBD',
-                                                         rtarrb['sell' + future[0:2]].iloc[0],
-                                                         rtarrb['buyETF'].iloc[0], 'TBD', 'TBD', 0]
+                                                         rtarrb['buy' + future[0:2]].iloc[0],
+                                                         rtarrb['sellETF'].iloc[0], 'TBD', 'TBD', 0]
                     continue
             # cant buy cuz its last day
             print('cant buy, case 2')
@@ -86,8 +87,9 @@ def get_short_trade_log(future, buyspread, sellspread):
     list = ['buyFuture', 'buyETF', 'sellFuture', 'sellETF']
     for i in list:
         tradelog[i] = pd.to_numeric(tradelog[i])
-    tradelog['returnRate'] = (tradelog['sellETF'] - tradelog['buyETF'] - tradelog['sellFuture'] + tradelog['buyFuture'])/ (
-        tradelog['buyETF'])
+    tradelog['returnRate'] = (tradelog['sellETF'] - tradelog['buyETF'] - tradelog['sellFuture'] + tradelog[
+        'buyFuture']) / (
+                                 tradelog['sellETF'])
     print(tradelog)
     return tradelog
 
@@ -121,25 +123,29 @@ def get_long_trade_log(future, buyspread, sellspread):
                                        tradelog['buyETF'].iloc[i],
                                        rtarrs['sell' + future[0:2]].iloc[0], rtarrs['buyETF'].iloc[0], 0]
                     canbuy = True
-
-            if len(rtarrs.index) == 0:
-                rtarrs = rtarr[rtarr['timetick'] > '14:30:00.000']
-
-                print('trying to sell, case2')
+            else:
+                if len(rtarrs.index) == 0:
+                    rtarrs = rtarr[rtarr['timetick'] > '14:30:00.000']
+                    rtarrs = rtarrs[rtarrs['buyRate'] != 0]
+                    print('trying to sell, case2')
+                    i = len(tradelog.index) - 1
+                    tradelog.loc[i] = [tradelog['startDate'].iloc[i], tradelog['startTick'].iloc[i], date,
+                                       rtarrs['timetick'].iloc[0], tradelog['buyFuture'].iloc[i],
+                                       tradelog['buyETF'].iloc[i],
+                                       rtarrs['sell' + future[0:2]].iloc[0], rtarrs['buyETF'].iloc[0], 0]
+                    canbuy = True
+                    continue
+                print('trying to sell, case3')
                 i = len(tradelog.index) - 1
                 tradelog.loc[i] = [tradelog['startDate'].iloc[i], tradelog['startTick'].iloc[i], date,
                                    rtarrs['timetick'].iloc[0], tradelog['buyFuture'].iloc[i],
                                    tradelog['buyETF'].iloc[i],
-                                   rtarrs['sell' + future[0:2]].iloc[0], rtarrs['buyETF'].iloc[0], 0]
+                                   rtarrs['buy' + future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0]
                 canbuy = True
                 continue
-            print('trying to sell, case3')
-            i = len(tradelog.index) - 1
-            tradelog.loc[i] = [tradelog['startDate'].iloc[i], tradelog['startTick'].iloc[i], date,
-                               rtarrs['timetick'].iloc[0], tradelog['buyFuture'].iloc[i], tradelog['buyETF'].iloc[i],
-                               rtarrs['buy' + future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0]
-            canbuy = True
-            continue
+
+
+
 
         if canbuy == True:
 
@@ -217,20 +223,30 @@ def get_trade_date(name):
 
 
 if __name__ == '__main__':
-    list1 = ['IH','IF']
-    list2 = range(2001, 2013)
+    list1 = ['IH19','IF19']
+    list2 = range(1, 13)
     buyspread = 0.015
     sellspread = 0.0015
     for i1 in list1:
         for i2 in list2:
-            name = str(i1)+str(i2)
+            if i2<10:
+                name = str(i1)+'0'+str(i2)
+            else:
+                name = str(i1) + str(i2)
+            tradeloglong = get_long_trade_log(name, buyspread, sellspread)
+            tradelogshort = get_short_trade_log(name, buyspread, sellspread)
 
-            tradelog = get_long_trade_log(name, buyspread, sellspread)
+            pathlong = './result/' + name[0:2] + '/longFuture/'
+            pathshort = './result/' + name[0:2] + '/shortFuture/'
 
-            path = './result/' + name[0:2] + '/longFuture/'
-            folder = os.path.exists(path)
-            if not folder:
-                os.makedirs(path)
-            tradelog.to_csv(path + name + '.csv', index=False)
+            folderlong = os.path.exists(pathlong)
+            foldershort = os.path.exists(pathshort)
+            if not folderlong:
+                os.makedirs(pathlong)
+            if not foldershort:
+                os.makedirs(pathshort)
+
+            tradeloglong.to_csv(pathlong + name + '.csv', index=False)
+            tradelogshort.to_csv(pathshort+name+'.csv', index=False)
 
             print('logged' + name)
