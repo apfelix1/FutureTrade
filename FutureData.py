@@ -12,9 +12,11 @@ class FutureTrade:
     fUtils = CFuturesMarketDataUtils('Z:/FuturesData', 'cffex-l2')
     secUtils = CSecurityMarketDataUtils('Z:/StockData')
 
+
     def __init__(self, name, etfname):
         self.name = name
         self.etfNumber = etfname
+
 
     def get_etf_TAQ_array(self, date):
         fundTAQ = self.secUtils.FundTAQDataFrame(self.etfNumber, date)
@@ -57,7 +59,7 @@ class FutureTrade:
             sum_vol = fundtaq[index, i_s10:i_s1 + 1].sum()
             # check if there is enough shares to trade
             if ttshare > sum_vol:
-                print('cant buy' + self.etfNumber)
+                # print('cant buy' + self.etfNumber)
                 fundtaq[index, -1] = 0
             else:
                 while i < 10:
@@ -91,7 +93,7 @@ class FutureTrade:
             sum_vol = fundtaq[index, i_b1:i_b10 + 1].sum()
             # check if there is enough shares to trade
             if ttshare > sum_vol:
-                print('cant sell' + self.etfNumber)
+                # print('cant sell' + self.etfNumber)
                 fundtaq[index, -1] = 0
             else:
                 while i < 10:
@@ -112,7 +114,6 @@ class FutureTrade:
         name = self.name
         futuredf = self.fUtils.FuturesTickDataFrame(name, date)
         timetick = rtarr[:, 0]
-
         pricelist = []
 
         for i in timetick:
@@ -192,7 +193,20 @@ class FutureTrade:
         rtarr = self.get_return_rate(rtarr)
         # print('getting return rate' + date)
 
-        return rtarr
+        name = self.name
+        rtarr_df = pd.DataFrame(rtarr)
+        rtarr_df = rtarr_df.rename(
+            columns={0: 'timetick', 1: 'buyETF', 2: 'sellETF', 3: 'buy' + name[0:2], 4: 'sell' + name[0:2],
+                     5: 'buyDiff', 6: 'sellDiff',
+                     7: 'sellRate', 8: 'buyRate'})
+        path = '.\\result\\' + name[0:2] + '\\' + name
+        folder = os.path.exists(path)
+        if not folder:
+            os.makedirs(path)
+        rtarr_df.to_csv(path + '\\' + date + '.csv', index=False)
+        print('got rtarr on '+ date)
+
+        return
 
 
 
@@ -201,6 +215,7 @@ class FutureTrade:
 def get_trade_date(name):
     year = name[2:4]
     month = name[4:]
+    fUtils = CFuturesMarketDataUtils('Z:/FuturesData', 'cffex-l2')
 
     # get the month and year of start date
     if int(month) == 3 or int(month) == 6 or int(month) == 9 or int(month) == 12:
@@ -241,6 +256,15 @@ def get_trade_date(name):
 
     tdPeriodList = TradingDays(startdate, enddate)
 
+    for tdday in tdPeriodList:
+        tradingfuture = fUtils.FuturesList(name[0:2], tdday)
+        try:
+            b = tradingfuture.index(name)
+        except ValueError:
+            tdPeriodList.remove(tdday)
+        else:
+            continue
+
     return tdPeriodList
 
 
@@ -249,10 +273,10 @@ def get_trade_date(name):
 if __name__ == '__main__':
     for month in range(1, 13):
         if month < 10:
-            name = 'IH19'+'0'+str(month)
+            name = 'IF18'+'0'+str(month)
         else:
-            name = 'IH19' + str(month)
-        etfname = '510050.SH'
+            name = 'IF18' + str(month)
+        etfname = '510300.SH'
         tradelist = get_trade_date(name)
         # print(tradelist)
 
@@ -260,10 +284,11 @@ if __name__ == '__main__':
         for i in range(len(tradelist)):
             tradelist[i] = tradelist[i].replace('-', '')
 
+
         a = FutureTrade(name, etfname)
         pool = mp.Pool(mp.cpu_count())
         rtarr_list = pool.map(a.get_rtarr, [(td) for td in tradelist])
-
+'''
         buymax = []
         sellmax = []
         for i in range(len(rtarr_list)):
@@ -281,6 +306,7 @@ if __name__ == '__main__':
             rtarr_df.to_csv(path + '\\' + date + '.csv', index=False)
             buymax.append(rtarr[:, 7].astype(np.float).max())
             sellmax.append(rtarr[:, 8].astype(np.float).max())
+            '''
 
 
 

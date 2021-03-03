@@ -219,11 +219,21 @@ def get_trade_date(name):
 
     tdPeriodList = TradingDays(startdate, enddate)
 
+    for tdday in tdPeriodList:
+        tradingfuture = fUtils.FuturesList(name[0:2], tdday)
+        try:
+            b = tradingfuture.index(name)
+        except ValueError:
+            tdPeriodList.remove(tdday)
+        else:
+            continue
+
     return tdPeriodList
 
 
+
 if __name__ == '__main__':
-    list1 = ['IH19','IF19']
+    list1 = ['IH18','IF18']
     list2 = range(1, 13)
     buyspread = 0.015
     sellspread = 0.0015

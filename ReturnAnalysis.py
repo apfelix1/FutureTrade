@@ -118,11 +118,11 @@ def get_long_future_return(future, year):
 
     return returnlog
 
-def get_quant_simulation(future, quant):
-    monthlist = range(2001, 2013)
+def get_quant_simulation(future, quant, year):
+    monthlist = range((int(str(year)[-2:]+'01')), int(str(year)[-2:]+'13'))
     startquant = quant
     currquant = quant
-    tdPeriodList = TradingDays('20200101', '20201231')
+    tdPeriodList = TradingDays(str(year)+ '0101', str(year)+'1231')
     num_trades = 0
     holding_bool = 0
     holdday = 0
@@ -160,7 +160,7 @@ def get_quant_simulation(future, quant):
             holdday += 1
 
     endquant = currquant
-    print('The input quant is' + str(startquant))
+    print('The input quant is ' + str(startquant))
     print('The output quant is ' + str(endquant))
     print('absolute earning is ' + str(endquant - startquant))
     print('number of trades is ' + str(num_trades))
@@ -172,7 +172,7 @@ def get_quant_simulation(future, quant):
 def get_return_data(future):
 
     return
-year = 2019
+year = 2020
 print('printing short results')
 IHSreturn = get_short_future_return('IH', year)
 print(IHSreturn)
