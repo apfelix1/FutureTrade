@@ -35,7 +35,7 @@ class FutureTrade:
         self.etf_i_sp10 = fundTAQ.columns.values.tolist().index('SellPrice10')
         self.etf_i_sp1 = fundTAQ.columns.values.tolist().index('SellPrice01')
 
-        rtarr = np.zeros((fundArray.shape[0], 8))
+        rtarr = np.zeros((fundArray.shape[0], 9))
         rtarr = np.concatenate(
             (np.row_stack(fundArray[:, fundTAQ.columns.values.tolist().index('TradingTime')]), rtarr), axis=1)
 
@@ -178,6 +178,20 @@ class FutureTrade:
 
         return rtarr
 
+    def get_tracking_error(self, rtarr, date):
+        if self.name[0:2]=='IH':
+            indexname = '000016.SH'
+        if self.name[0:2] == 'IF':
+            indexname = '000300.SH'
+        indexdf = self.secUtils.IndexTickDataFrame(indexname, date)
+        for i in range(len(rtarr[:,0])):
+            timetick = rtarr[i,0]
+            index = indexdf[indexdf['TradingTime'] < timetick]['LastPrice'].iloc[-1]
+            rtarr[i,9] = float(index)*300
+        return rtarr
+
+
+
     def get_rtarr(self, date):
         print('getting rtarr for'+self.name+ 'on' + date)
         rtarr = self.get_etf_TAQ_array(date)
@@ -192,13 +206,14 @@ class FutureTrade:
         # print('sell future ' + date)
         rtarr = self.get_return_rate(rtarr)
         # print('getting return rate' + date)
+        rtarr = self.get_tracking_error(rtarr, date)
 
         name = self.name
         rtarr_df = pd.DataFrame(rtarr)
         rtarr_df = rtarr_df.rename(
             columns={0: 'timetick', 1: 'buyETF', 2: 'sellETF', 3: 'buy' + name[0:2], 4: 'sell' + name[0:2],
                      5: 'buyDiff', 6: 'sellDiff',
-                     7: 'sellRate', 8: 'buyRate'})
+                     7: 'sellRate', 8: 'buyRate', 9:'IndexPrice'})
         path = '.\\result\\' + name[0:2] + '\\' + name
         folder = os.path.exists(path)
         if not folder:
@@ -271,23 +286,27 @@ def get_trade_date(name):
 
 
 if __name__ == '__main__':
-    for month in range(1, 13):
-        if month < 10:
-            name = 'IF18'+'0'+str(month)
-        else:
-            name = 'IF18' + str(month)
-        etfname = '510300.SH'
-        tradelist = get_trade_date(name)
-        # print(tradelist)
+    year = 2018
+    for fut in ['IH', 'IF']:
+        for month in range(1, 13):
+            if month < 10:
+                name = fut+str(year)[-2:]+ '0' + str(month)
+            else:
+                name = fut+str(year)[-2:] + str(month)
+            if fut == 'IH':
+                etfname = '510050.SH'
+            if fut == 'IF':
+                etfname = '510300.SH'
+            tradelist = get_trade_date(name)
 
-        rtarr_list = []
-        for i in range(len(tradelist)):
-            tradelist[i] = tradelist[i].replace('-', '')
+            rtarr_list = []
+            for i in range(len(tradelist)):
+                tradelist[i] = tradelist[i].replace('-', '')
 
+            a = FutureTrade(name, etfname)
+            pool = mp.Pool(mp.cpu_count())
+            rtarr_list = pool.map(a.get_rtarr, [(td) for td in tradelist])
 
-        a = FutureTrade(name, etfname)
-        pool = mp.Pool(mp.cpu_count())
-        rtarr_list = pool.map(a.get_rtarr, [(td) for td in tradelist])
 '''
         buymax = []
         sellmax = []
