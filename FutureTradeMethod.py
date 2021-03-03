@@ -223,8 +223,7 @@ def get_trade_date(name):
         tradingfuture = fUtils.FuturesList(name[0:2], tdday)
         try:
             b = tradingfuture.index(name)
-        except ValueError:
-            tdPeriodList.remove(tdday)
+        except ValueError:            tdPeriodList.remove(tdday)
         else:
             continue
 
