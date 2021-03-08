@@ -3,10 +3,64 @@ import pandas as pd
 import numpy as np
 from higgsboom.MarketData.CSecurityMarketDataUtils import *
 import datetime
+import seaborn as sns
 
 fUtils = CFuturesMarketDataUtils('Z:/FuturesData', 'cffex-l2')
 secUtils = CSecurityMarketDataUtils('Z:/StockData')
 indexdf = secUtils.IndexTickDataFrame('000300.SH', '20200423')
+
+def get_trade_date(name):
+    year = name[2:4]
+    month = name[4:]
+
+    # get the month and year of start date
+    if int(month) == 3 or int(month) == 6 or int(month) == 9 or int(month) == 12:
+        startmonth = int(month) - 7
+        if startmonth > 0:
+            startmonth = str(startmonth)
+            startyear = year
+        else:
+            startmonth = str(12 + startmonth)
+            startyear = str(int(year) - 1)
+    else:
+        startmonth = int(month) - 2
+        if startmonth > 0:
+            startmonth = str(startmonth)
+            startyear = year
+        else:
+            startmonth = str(12 + startmonth)
+            startyear = str(int(year) - 1)
+
+    # get the start date
+    for i in range(0, 7):
+        startday = str(15 + i)
+        if datetime.datetime.strptime('20' + startyear + startmonth + startday, '%Y%m%d').weekday() == 4:
+            startday = str(int(startday))
+            startdate = (datetime.datetime.strptime('20' + startyear + startmonth + startday,
+                                                    '%Y%m%d') + datetime.timedelta(days=3)).date()
+            break
+
+    # get the end date
+    for i in range(0, 7):
+        endday = str(15 + i)
+        if datetime.datetime.strptime('20' + year + month + endday, '%Y%m%d').weekday() == 4:
+            enddate = (datetime.datetime.strptime('20' + year + month + endday, '%Y%m%d').date())
+            break
+
+    startdate = str(startdate).replace('-', '')
+    enddate = str(enddate).replace('-', '')
+
+    tdPeriodList = TradingDays(startdate, enddate)
+
+    for tdday in tdPeriodList:
+        tradingfuture = fUtils.FuturesList(name[0:2], tdday)
+        try:
+            b = tradingfuture.index(name)
+        except ValueError:            tdPeriodList.remove(tdday)
+        else:
+            continue
+
+    return tdPeriodList
 
 def get_all_trades():
     for fut in ['IH', 'IF']:
@@ -21,13 +75,13 @@ def get_all_trades():
                 longpath = './result/'+fut+'/longFuture/'
                 shortpath = './result/'+fut+'/shortFuture/'
 
-                longdata = pd.read_csv(longpath+futname+'.csv', index_col = 0)
+                longdata = pd.read_csv(longpath+futname+'.csv')
                 longdata['TradeMethod'] = 'Long'
-                # longdata['FutureName'] = futname
+                longdata['FutureName'] = futname
                 # longdata.to_csv(longpath+futname+'.csv')
-                shortdata = pd.read_csv(shortpath+futname+'.csv', index_col = 0)
+                shortdata = pd.read_csv(shortpath+futname+'.csv')
                 shortdata['TradeMethod'] = 'Short'
-                # shortdata['FutureName'] = futname
+                shortdata['FutureName'] = futname
                 # shortdata.to_csv(shortpath+futname+'.csv')
                 if futname =='IH1801':
                     data = pd.concat([longdata,shortdata], ignore_index=True)
@@ -68,11 +122,11 @@ def get_return_rate():
                                            datashort['sellFuture'] +
                                            datashort['buyFuture'])) / datashort['buyETF']
     data[data['TradeMethod'] == 'Short'] = datalong[datalong['TradeMethod'] == 'Short']
+    data.to_csv('./alltrades.csv')
 
     return
 
 def get_apr():
-    get_holding_period()
     data = pd.read_csv('./alltrades.csv', index_col=0)
 
     data['APR'] = 0
@@ -81,8 +135,50 @@ def get_apr():
     data.to_csv('./alltrades.csv')
     return
 
+def get_error_changed():
+    data = pd.read_csv('./alltrades.csv', index_col=0)
+    data['ErrorChanged'] = data['endError']-data['startError']
+    data.to_csv('./alltrades.csv')
+
+    return
+def get_te_result():
+    list1 = ['IH', 'IF']
+    list2 = ['18','19','20']
+    list3 = range(1, 13)
+    teslist = []
+    teblist= []
+
+    for i1 in list1:
+        for i2 in list2:
+            for i3 in list3:
+                if i3 < 10:
+                    name = str(i1) +str(i2)+ '0' + str(i3)
+                else:
+                    name = str(i1) + str(i2)+str(i3)
+                tdlist = get_trade_date(name)
+                for date in tdlist:
+                    date = date.replace('-','')
+                    data = pd.read_csv('./result/' + i1[0:2] + '/' + name + '/' + date + '.csv', index_col = None)
+                    datas = data[data['sellETF']!= 0]
+                    datab = data[data['buyETF']!=0]
+                    data_tes = (datas['IndexPrice'] - datas['sellETF']).mean()
+                    data_teb =(datab['IndexPrice'] - datab['buyETF']).mean()
+                    teslist.append(data_tes)
+                    teblist.append(data_teb)
+    print('tes mean is '+str(sum(teslist)/len(teslist)))
+    print('teb mean is ' + str(sum(teblist)/len(teblist)))
+
 
 if __name__ =='__main__':
+    get_all_trades()
+    get_holding_period()
+    get_return_rate()
     get_apr()
+    get_error_changed()
+
+    # get_te_result()
+
+
+
 
 
