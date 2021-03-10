@@ -72,8 +72,8 @@ def get_all_trades():
                 elif mon >=10 :
                     futname = fut + str(year)[-2:] + str(mon)
 
-                longpath = './result/'+fut+'/longFuture/'
-                shortpath = './result/'+fut+'/shortFuture/'
+                longpath = './result/'+fut+'/longFuture5/'
+                shortpath = './result/'+fut+'/shortFuture5/'
 
                 longdata = pd.read_csv(longpath+futname+'.csv')
                 longdata['TradeMethod'] = 'Long'
@@ -88,11 +88,11 @@ def get_all_trades():
                 else:
                     data = pd.concat([data, longdata, shortdata],ignore_index= True)
     # data.drop_duplicates()
-    data.to_csv('./alltrades.csv')
+    data.to_csv('./alltrades5.csv')
     return
 
 def get_holding_period():
-    data = pd.read_csv('alltrades.csv', index_col=0)
+    data = pd.read_csv('alltrades5.csv', index_col=0)
     data['HoldingPeriod'] = '0'
     for i in range(len(data.index)):
         data['HoldingPeriod'].iloc[i] = (datetime.datetime.strptime(str(data['endDate'].iloc[i]),
@@ -101,11 +101,11 @@ def get_holding_period():
 
     data['HoldingPeriod'] +=1
 
-    data.to_csv('./alltrades.csv')
+    data.to_csv('./alltrades5.csv')
     return data
 
 def get_return_rate():
-    data = pd.read_csv('alltrades.csv', index_col=0)
+    data = pd.read_csv('alltrades5.csv', index_col=0)
 
     datalong = data
     datashort = data
@@ -122,23 +122,23 @@ def get_return_rate():
                                            datashort['sellFuture'] +
                                            datashort['buyFuture'])) / datashort['buyETF']
     data[data['TradeMethod'] == 'Short'] = datalong[datalong['TradeMethod'] == 'Short']
-    data.to_csv('./alltrades.csv')
+    data.to_csv('./alltrades5.csv')
 
     return
 
 def get_apr():
-    data = pd.read_csv('./alltrades.csv', index_col=0)
+    data = pd.read_csv('./alltrades5.csv', index_col=0)
 
     data['APR'] = 0
     data['APR'] = data['returnRate'] * 243 / data['HoldingPeriod']
 
-    data.to_csv('./alltrades.csv')
+    data.to_csv('./alltrades5.csv')
     return
 
 def get_error_changed():
-    data = pd.read_csv('./alltrades.csv', index_col=0)
+    data = pd.read_csv('./alltrades5.csv', index_col=0)
     data['ErrorChanged'] = data['endError']-data['startError']
-    data.to_csv('./alltrades.csv')
+    data.to_csv('./alltrades5.csv')
 
     return
 def get_te_result():
