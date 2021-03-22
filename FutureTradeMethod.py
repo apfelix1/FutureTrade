@@ -30,8 +30,8 @@ def get_short_trade_log(future, buyspread, sellspread):
         if canbuy == False:
             rtarr['sellRate'] = pd.to_numeric(rtarr['sellRate'])
 
-            rtarrs = rtarr[(rtarr['buy' + future[0:2]] - rtarr['sellETF'] / rtarr['sellETF']) < sellspread]
-            rtarrs = rtarrs[(rtarrs['buy' + future[0:2]] - rtarrs['IndexPrice'] / rtarrs['IndexPrice']) < sellspread]
+            rtarrs = rtarr[(rtarr['buy' + future[0:2]] - rtarr['sellETF'] / rtarr['IndexPrice']) < sellspread]
+            # rtarrs = rtarrs[(rtarrs['buy' + future[0:2]] - rtarrs['IndexPrice'] / rtarrs['IndexPrice']) < sellspread]
             rtarrs = rtarrs[rtarrs['sellRate'] != 0]
             print(date)
             if date != tradelist[-1]:
@@ -46,7 +46,7 @@ def get_short_trade_log(future, buyspread, sellspread):
                                        tradelog['buyETF'].iloc[i],
                                        rtarrs['sell' + future[0:2]].iloc[0], rtarrs['buyETF'].iloc[0], 0,
                                        tradelog['startError'].iloc[i],
-                                       rtarrs['buyETF'].iloc[0] - rtarrs['IndexPrice'].iloc[0]]
+                                        rtarrs['IndexPrice'].iloc[0] - rtarrs['buyETF'].iloc[0]]
                     canbuy = True
             else:
                 if len(rtarrs.index) == 0:
@@ -59,7 +59,7 @@ def get_short_trade_log(future, buyspread, sellspread):
                                        tradelog['buyETF'].iloc[i],
                                        rtarrs['sell' + future[0:2]].iloc[0], rtarrs['buyETF'].iloc[0], 0,
                                        tradelog['startError'].iloc[i],
-                                       rtarrs['buyETF'].iloc[0] - rtarrs['IndexPrice'].iloc[0]]
+                                        rtarrs['IndexPrice'].iloc[0]- rtarrs['buyETF'].iloc[0]]
 
                     canbuy = True
                     continue
@@ -70,15 +70,15 @@ def get_short_trade_log(future, buyspread, sellspread):
                                    tradelog['buyETF'].iloc[i],
                                    rtarrs['buy' + future[0:2]].iloc[0], rtarrs['sellETF'].iloc[0], 0,
                                    tradelog['startError'].iloc[i],
-                                   rtarrs['sellETF'].iloc[0] - rtarrs['IndexPrice'].iloc[0]]
+                                    rtarrs['IndexPrice'].iloc[0]-rtarrs['sellETF'].iloc[0]]
                 canbuy = True
                 continue
 
         if canbuy == True:
 
             rtarr['buyRate'] = pd.to_numeric(rtarr['buyRate'])
-            rtarrb = rtarr[(rtarr['buy' + future[0:2]] - rtarr['sellETF']) / rtarr['sellETF'] > buyspread]
-            rtarrb = rtarrb[(rtarrb['buy' + future[0:2]] - rtarrb['IndexPrice']) / rtarrb['IndexPrice'] > buyspread]
+            rtarrb = rtarr[(rtarr['buy' + future[0:2]] - rtarr['sellETF']) / rtarr['IndexPrice'] > buyspread]
+            # rtarrb = rtarrb[(rtarrb['buy' + future[0:2]] - rtarrb['IndexPrice']) / rtarrb['IndexPrice'] > buyspread]
             rtarrb = rtarrb[rtarrb['buyRate'] != 0]
             if date != tradelist[-1]:
                 if len(rtarrb.index) == 0:
@@ -90,7 +90,7 @@ def get_short_trade_log(future, buyspread, sellspread):
                     tradelog.loc[len(tradelog.index)] = [date, rtarrb['timetick'].iloc[0], 'TBD', 'TBD',
                                                          rtarrb['buy' + future[0:2]].iloc[0],
                                                          rtarrb['sellETF'].iloc[0], 'TBD', 'TBD', 0,
-                                                         rtarrb['buyETF'].iloc[0] - rtarrb['IndexPrice'].iloc[0], 'TBD']
+                                                          rtarrb['IndexPrice'].iloc[0] - rtarrb['buyETF'].iloc[0], 'TBD']
                     continue
             # cant buy cuz its last day
             print('cant buy, case 2')
@@ -123,8 +123,8 @@ def get_long_trade_log(future, buyspread, sellspread):
         rtarr = get_df(future, date)
         if canbuy == False:
             rtarr['buyRate'] = pd.to_numeric(rtarr['buyRate'])
-            rtarrs = rtarr[(rtarr['sellETF'] - rtarr['buy' + future[0:2]]) / rtarr['sellETF'] < sellspread]
-            rtarrs = rtarrs[(rtarrs['IndexPrice'] - rtarrs['buy' + future[0:2]]) / rtarrs['IndexPrice'] < sellspread]
+            rtarrs = rtarr[(rtarr['sellETF'] - rtarr['buy' + future[0:2]]) / rtarr['IndexPrice'] < sellspread]
+            # rtarrs = rtarrs[(rtarrs['IndexPrice'] - rtarrs['buy' + future[0:2]]) / rtarrs['IndexPrice'] < sellspread]
             rtarrs = rtarrs[rtarrs['buyRate'] != 0]
             print(date)
             if date != tradelist[-1]:
@@ -169,8 +169,8 @@ def get_long_trade_log(future, buyspread, sellspread):
         if canbuy == True:
 
             rtarr['buyRate'] = pd.to_numeric(rtarr['buyRate'])
-            rtarrb = rtarr[(rtarr['sellETF'] - rtarr['buy' + future[0:2]]) / rtarr['sellETF'] > buyspread]
-            rtarrb = rtarrb[(rtarrb['IndexPrice'] - rtarrb['buy' + future[0:2]]) / rtarrb['IndexPrice'] > buyspread]
+            rtarrb = rtarr[(rtarr['sellETF'] - rtarr['buy' + future[0:2]]) / rtarr['IndexPrice'] > buyspread]
+            # rtarrb = rtarrb[(rtarrb['IndexPrice'] - rtarrb['buy' + future[0:2]]) / rtarrb['IndexPrice'] > buyspread]
             rtarrb = rtarrb[rtarrb['sellRate'] != 0]
             if date != tradelist[-1]:
                 if len(rtarrb.index) == 0:
@@ -265,8 +265,8 @@ def get_trade_date(name):
 if __name__ == '__main__':
     list1 = ['IH18', 'IF18', 'IH19', 'IF19', 'IH20', 'IF20']
     list2 = range(1, 13)
-    buyspread = 0.01
-    sellspread = 0.0015
+    buyspread = 0.015
+    sellspread = 0.005
     for i1 in list1:
         for i2 in list2:
             if i2 < 10:
@@ -276,8 +276,8 @@ if __name__ == '__main__':
             tradeloglong = get_long_trade_log(name, buyspread, sellspread)
             tradelogshort = get_short_trade_log(name, buyspread, sellspread)
 
-            pathlong = './result/' + name[0:2] + '/longFuture5/'
-            pathshort = './result/' + name[0:2] + '/shortFuture5/'
+            pathlong = './result/' + name[0:2] + '/longFuture10/'
+            pathshort = './result/' + name[0:2] + '/shortFuture10/'
 
             folderlong = os.path.exists(pathlong)
             foldershort = os.path.exists(pathshort)

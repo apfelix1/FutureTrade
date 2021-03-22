@@ -9,6 +9,8 @@ fUtils = CFuturesMarketDataUtils('Z:/FuturesData', 'cffex-l2')
 secUtils = CSecurityMarketDataUtils('Z:/StockData')
 indexdf = secUtils.IndexTickDataFrame('000300.SH', '20200423')
 
+docpath = './tradelog/tradelog5.csv'
+
 def get_trade_date(name):
     year = name[2:4]
     month = name[4:]
@@ -72,8 +74,8 @@ def get_all_trades():
                 elif mon >=10 :
                     futname = fut + str(year)[-2:] + str(mon)
 
-                longpath = './result/'+fut+'/longFuture5/'
-                shortpath = './result/'+fut+'/shortFuture5/'
+                longpath = './result/'+fut+'/longFuture10/'
+                shortpath = './result/'+fut+'/shortFuture10/'
 
                 longdata = pd.read_csv(longpath+futname+'.csv')
                 longdata['TradeMethod'] = 'Long'
@@ -88,11 +90,11 @@ def get_all_trades():
                 else:
                     data = pd.concat([data, longdata, shortdata],ignore_index= True)
     # data.drop_duplicates()
-    data.to_csv('./alltrades5.csv')
+    data.to_csv(docpath)
     return
 
 def get_holding_period():
-    data = pd.read_csv('alltrades5.csv', index_col=0)
+    data = pd.read_csv(docpath, index_col=0)
     data['HoldingPeriod'] = '0'
     for i in range(len(data.index)):
         data['HoldingPeriod'].iloc[i] = (datetime.datetime.strptime(str(data['endDate'].iloc[i]),
@@ -101,44 +103,44 @@ def get_holding_period():
 
     data['HoldingPeriod'] +=1
 
-    data.to_csv('./alltrades5.csv')
+    data.to_csv(docpath)
     return data
 
 def get_return_rate():
-    data = pd.read_csv('alltrades5.csv', index_col=0)
+    data = pd.read_csv(docpath, index_col=0)
 
-    datalong = data
-    datashort = data
-    datalong['returnRate'] = (datalong['sellETF'] + datalong['buyFuture'] - datalong['buyETF'] - datalong[
-        'sellFuture'] - \
+    datalong = data[data['TradeMethod'] == 'Long']
+    datashort = data[data['TradeMethod'] == 'Short']
+    datalong['returnRate'] = (datalong['buyETF'] + datalong['sellFuture'] - datalong['buyFuture'] - datalong[
+        'sellETF'] - \
                               0.00015 * (datalong['sellETF'] + datalong['buyETF']) - 0.000023 * (
                                           datalong['sellFuture'] +
                                           datalong['buyFuture'])) / datalong['buyFuture']
-    data[data['TradeMethod'] == 'Long'] = datalong[datalong['TradeMethod'] == 'Long']
+    data[data['TradeMethod'] == 'Long'] = datalong
 
-    datashort['returnRate'] = (datashort['buyETF'] + datashort['sellFuture'] - datashort['sellETF'] - datashort[
-        'buyFuture'] - \
+    datashort['returnRate'] = (datashort['buyFuture'] + datashort['sellETF'] - datashort['sellFuture'] - datashort[
+        'buyETF'] - \
                                0.00015 * (datashort['sellETF'] + datashort['buyETF']) - 0.000023 * (
                                            datashort['sellFuture'] +
                                            datashort['buyFuture'])) / datashort['buyETF']
-    data[data['TradeMethod'] == 'Short'] = datalong[datalong['TradeMethod'] == 'Short']
-    data.to_csv('./alltrades5.csv')
+    data[data['TradeMethod'] == 'Short'] = datashort
+    data.to_csv(docpath)
 
     return
 
 def get_apr():
-    data = pd.read_csv('./alltrades5.csv', index_col=0)
+    data = pd.read_csv(docpath, index_col=0)
 
     data['APR'] = 0
     data['APR'] = data['returnRate'] * 243 / data['HoldingPeriod']
 
-    data.to_csv('./alltrades5.csv')
+    data.to_csv(docpath)
     return
 
 def get_error_changed():
-    data = pd.read_csv('./alltrades5.csv', index_col=0)
+    data = pd.read_csv(docpath, index_col=0)
     data['ErrorChanged'] = data['endError']-data['startError']
-    data.to_csv('./alltrades5.csv')
+    data.to_csv(docpath)
 
     return
 def get_te_result():
@@ -170,6 +172,7 @@ def get_te_result():
 
 
 if __name__ =='__main__':
+
     get_all_trades()
     get_holding_period()
     get_return_rate()
